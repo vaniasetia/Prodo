@@ -5,16 +5,18 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f2f5;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
 }
 
 .board {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .lanes {
@@ -89,10 +91,11 @@ button:disabled:hover {
 
 .container {
   margin-top: 2rem;
-  background-color: #f7f9fc;
+  background-color: rgba(247, 249, 252, 0.8);
   border-radius: 8px;
   padding: 1.5rem;
   position: relative;
+  backdrop-filter: blur(5px);
 }
 
 .container h2 {
