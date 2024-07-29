@@ -1,7 +1,9 @@
+// Import necessary React hooks and styles
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
 
 const Board = () => {
+  // Initialize tasks state with some default tasks
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Get groceries', status: 'todo' },
     { id: 2, title: 'Feed the dogs', status: 'todo' },
@@ -11,109 +13,105 @@ const Board = () => {
     { id: 6, title: 'Read a book', status: 'done' },
   ]);
 
+  // State for new task input
   const [newTask, setNewTask] = useState('');
+  // Ref for tracking the currently dragged item
   const dragItem = useRef(null);
-  const dragOverItem = useRef(null);
 
-  const [active, setActive] = useState('focus');
-  const [time, setTime] = useState(1500);
-  const [paused, setPaused] = useState(true);
-  const [intervalId, setIntervalId] = useState(null);
+  // State for managing the Pomodoro timer
+  const [timerState, setTimerState] = useState({
+    mode: 'focus',
+    time: 1500,
+    isRunning: false,
+  });
 
+  // Effect hook for managing the timer countdown
   useEffect(() => {
-    if (!paused && time > 0) {
-      const id = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
+    let intervalId;
+    if (timerState.isRunning && timerState.time > 0) {
+      intervalId = setInterval(() => {
+        setTimerState(prev => ({ ...prev, time: prev.time - 1 }));
       }, 1000);
-      setIntervalId(id);
-    } else if (time === 0) {
-      clearInterval(intervalId);
-      setActive('focus');
-      setTime(1500);
-      setPaused(true);
+    } else if (timerState.time === 0) {
+      // Reset timer when it reaches 0
+      setTimerState(prev => ({
+        mode: 'focus',
+        time: 1500,
+        isRunning: false,
+      }));
     }
-
+    // Clean up interval on component unmount or when timer stops
     return () => clearInterval(intervalId);
-  }, [paused, time]);
+  }, [timerState.isRunning, timerState.time]);
 
+  // Function to format seconds into MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
+  // Handler for drag start event
   const handleDragStart = (e, task) => {
     dragItem.current = task;
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
+  // Handler for drop event
   const handleDrop = (e, targetStatus) => {
     e.preventDefault();
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === dragItem.current.id) {
-        return { ...task, status: targetStatus };
-      }
-      return task;
-    });
-    setTasks(updatedTasks);
+    setTasks(tasks.map(task => 
+      task.id === dragItem.current.id ? { ...task, status: targetStatus } : task
+    ));
     dragItem.current = null;
   };
 
+  // Handler for adding a new task
   const handleAddTask = (e) => {
     e.preventDefault();
     if (newTask.trim()) {
-      const newTaskObj = { id: tasks.length + 1, title: newTask, status: 'todo' };
-      setTasks([...tasks, newTaskObj]);
+      setTasks([...tasks, { id: Date.now(), title: newTask, status: 'todo' }]);
       setNewTask('');
     }
   };
 
-  const handleFocus = () => {
-    setActive('focus');
-    setTime(1500);
-    setPaused(true);
+  // Function to set the timer mode
+  const setTimerMode = (mode, time) => {
+    setTimerState({ mode, time, isRunning: false });
   };
 
-  const handleShortBreak = () => {
-    setActive('short');
-    setTime(300);
-    setPaused(true);
+  // Function to toggle the timer start/pause
+  const toggleTimer = () => {
+    setTimerState(prev => ({ ...prev, isRunning: !prev.isRunning }));
   };
 
-  const handleLongBreak = () => {
-    setActive('long');
-    setTime(900);
-    setPaused(true);
+  // Function to reset the timer
+  const resetTimer = () => {
+    setTimerState(prev => ({ ...prev, time: getInitialTime(prev.mode), isRunning: false }));
   };
 
-  const handleStart = () => {
-    setPaused(false);
+  // Function to get the initial time for each timer mode
+  const getInitialTime = (mode) => {
+    const times = { focus: 1500, short: 300, long: 900 };
+    return times[mode] || 1500;
   };
 
-  const handlePause = () => {
-    setPaused(true);
-  };
-
-  const handleReset = () => {
-    setPaused(true);
-    switch (active) {
-      case 'long':
-        setTime(900);
-        break;
-      case 'short':
-        setTime(300);
-        break;
-      default:
-        setTime(1500);
-        break;
-    }
-  };
+  // Function to render tasks for each status column
+  const renderTasks = (status) => (
+    tasks.filter(task => task.status === status).map(task => (
+      <div
+        key={task.id}
+        className="task"
+        draggable
+        onDragStart={(e) => handleDragStart(e, task)}
+      >
+        {task.title}
+      </div>
+    ))
+  );
 
   return (
     <div className="board">
+      {/* Form for adding new tasks */}
       <form id="todo-form" onSubmit={handleAddTask}>
         <input
           type="text"
@@ -125,87 +123,45 @@ const Board = () => {
         <button type="submit">ADD +</button>
       </form>
 
+      {/* Task board with swim lanes */}
       <div className="lanes">
-        <div 
-          className="swim-lane" 
-          id="todolane" 
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'todo')}
-        >
-          <h3 className="heading">TODO</h3>
-          {tasks.filter((task) => task.status === 'todo').map((task) => (
-            <div
-              key={task.id}
-              className="task"
-              draggable
-              onDragStart={(e) => handleDragStart(e, task)}
-            >
-              {task.title}
-            </div>
-          ))}
-        </div>
-
-        <div 
-          className="swim-lane" 
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'doing')}
-        >
-          <h3 className="heading">Doing</h3>
-          {tasks.filter((task) => task.status === 'doing').map((task) => (
-            <div
-              key={task.id}
-              className="task"
-              draggable
-              onDragStart={(e) => handleDragStart(e, task)}
-            >
-              {task.title}
-            </div>
-          ))}
-        </div>
-
-        <div 
-          className="swim-lane" 
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'done')}
-        >
-          <h3 className="heading">Done</h3>
-          {tasks.filter((task) => task.status === 'done').map((task) => (
-            <div
-              key={task.id}
-              className="task"
-              draggable
-              onDragStart={(e) => handleDragStart(e, task)}
-            >
-              {task.title}
-            </div>
-          ))}
-        </div>
+        {['todo', 'doing', 'done'].map(status => (
+          <div 
+            key={status}
+            className="swim-lane" 
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, status)}
+          >
+            <h3 className="heading">{status.toUpperCase()}</h3>
+            {renderTasks(status)}
+          </div>
+        ))}
       </div>
 
+      {/* Pomodoro timer section */}
       <div className="container">
         <div className="section-container">
-          <button onClick={handleFocus} className={`btn ${active === 'focus' ? 'btn-focus' : ''}`}>
-            Focus
-          </button>
-          <button onClick={handleShortBreak} className={`btn ${active === 'short' ? 'btn-focus' : ''}`}>
-            Short Break
-          </button>
-          <button onClick={handleLongBreak} className={`btn ${active === 'long' ? 'btn-focus' : ''}`}>
-            Long Break
-          </button>
+          {['focus', 'short', 'long'].map(mode => (
+            <button 
+              key={mode}
+              onClick={() => setTimerMode(mode, getInitialTime(mode))} 
+              className={`btn ${timerState.mode === mode ? 'btn-focus' : ''}`}
+            >
+              {mode === 'short' ? 'Short Break' : mode === 'long' ? 'Long Break' : 'Focus'}
+            </button>
+          ))}
         </div>
         <div className="time-btn-container">
-          <span id="time">{formatTime(time)}</span>
+          <span id="time">{formatTime(timerState.time)}</span>
           <div className="btn-container">
-            <button id="btn-start" className={paused ? 'show' : 'hide'} onClick={handleStart}>
-              Start
+            <button onClick={toggleTimer}>
+              {timerState.isRunning ? 'Pause' : 'Start'}
             </button>
-            <button id="btn-pause" className={paused ? 'hide' : 'show'} onClick={handlePause}>
-              Pause
-            </button>
-            <button id="btn-reset" className={paused ? 'hide' : 'show'} onClick={handleReset}>
-              <i className="fa-solid fa-rotate-right"></i>
-            </button>
+            {timerState.isRunning && (
+              <button onClick={resetTimer}>
+                <i className="fa-solid fa-rotate-right"></i>
+              </button>
+            )}
           </div>
         </div>
       </div>
