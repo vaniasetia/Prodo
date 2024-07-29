@@ -5,10 +5,10 @@ const Board = () => {
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Get groceries', status: 'todo' },
     { id: 2, title: 'Feed the dogs', status: 'todo' },
-    { id: 3, title: 'How the lawn', status: 'todo' },
-    { id: 4, title: 'How the lawn', status: 'doing' },
-    { id: 5, title: 'Binge 80 hours of Game of ThroneS', status: 'doing' },
-    { id: 6, title: 'Watch pornhub', status: 'done' },
+    { id: 3, title: 'Mow the lawn', status: 'todo' },
+    { id: 4, title: 'Clean the house', status: 'doing' },
+    { id: 5, title: 'Binge 80 hours of Game of Thrones', status: 'doing' },
+    { id: 6, title: 'Read a book', status: 'done' },
   ]);
 
   const [newTask, setNewTask] = useState('');
@@ -30,10 +30,11 @@ const Board = () => {
       clearInterval(intervalId);
       setActive('focus');
       setTime(1500);
+      setPaused(true);
     }
 
     return () => clearInterval(intervalId);
-  }, [paused, time, intervalId]);
+  }, [paused, time]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -45,18 +46,12 @@ const Board = () => {
     dragItem.current = task;
   };
 
-  const handleDragEnter = (e, targetTask) => {
-    if (dragOverItem.current !== targetTask) {
-      dragOverItem.current = targetTask;
-    }
-  };
-
-  const handleDragEnd = (e) => {
-    dragItem.current = null;
-    dragOverItem.current = null;
+  const handleDragOver = (e) => {
+    e.preventDefault();
   };
 
   const handleDrop = (e, targetStatus) => {
+    e.preventDefault();
     const updatedTasks = tasks.map((task) => {
       if (task.id === dragItem.current.id) {
         return { ...task, status: targetStatus };
@@ -65,7 +60,6 @@ const Board = () => {
     });
     setTasks(updatedTasks);
     dragItem.current = null;
-    dragOverItem.current = null;
   };
 
   const handleAddTask = (e) => {
@@ -132,7 +126,12 @@ const Board = () => {
       </form>
 
       <div className="lanes">
-        <div className="swim-lane" id="todolane" onDragOver={(e) => handleDragEnter(e, { id: 'todo' })} onDrop={(e) => handleDrop(e, 'todo')}>
+        <div 
+          className="swim-lane" 
+          id="todolane" 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, 'todo')}
+        >
           <h3 className="heading">TODO</h3>
           {tasks.filter((task) => task.status === 'todo').map((task) => (
             <div
@@ -140,14 +139,17 @@ const Board = () => {
               className="task"
               draggable
               onDragStart={(e) => handleDragStart(e, task)}
-              onDragEnd={handleDragEnd}
             >
               {task.title}
             </div>
           ))}
         </div>
 
-        <div className="swim-lane" onDragOver={(e) => handleDragEnter(e, { id: 'doing' })} onDrop={(e) => handleDrop(e, 'doing')}>
+        <div 
+          className="swim-lane" 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, 'doing')}
+        >
           <h3 className="heading">Doing</h3>
           {tasks.filter((task) => task.status === 'doing').map((task) => (
             <div
@@ -155,14 +157,17 @@ const Board = () => {
               className="task"
               draggable
               onDragStart={(e) => handleDragStart(e, task)}
-              onDragEnd={handleDragEnd}
             >
               {task.title}
             </div>
           ))}
         </div>
 
-        <div className="swim-lane" onDragOver={(e) => handleDragEnter(e, { id: 'done' })} onDrop={(e) => handleDrop(e, 'done')}>
+        <div 
+          className="swim-lane" 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, 'done')}
+        >
           <h3 className="heading">Done</h3>
           {tasks.filter((task) => task.status === 'done').map((task) => (
             <div
@@ -170,7 +175,6 @@ const Board = () => {
               className="task"
               draggable
               onDragStart={(e) => handleDragStart(e, task)}
-              onDragEnd={handleDragEnd}
             >
               {task.title}
             </div>
