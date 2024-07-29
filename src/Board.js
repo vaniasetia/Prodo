@@ -1,6 +1,7 @@
 // Import necessary React hooks and styles
 import React, { useState, useRef, useEffect } from 'react';
-import './styles.css';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import './index.css';
 
 const Board = () => {
   // Initialize tasks state with some default tasks
@@ -95,23 +96,26 @@ const Board = () => {
     return times[mode] || 1500;
   };
 
-  // Function to render tasks for each status column
+  // Update renderTasks function
   const renderTasks = (status) => (
-    tasks.filter(task => task.status === status).map(task => (
-      <div
-        key={task.id}
-        className="task"
-        draggable
-        onDragStart={(e) => handleDragStart(e, task)}
-      >
-        {task.title}
-      </div>
-    ))
+    <TransitionGroup>
+      {tasks.filter(task => task.status === status).map(task => (
+        <CSSTransition key={task.id} timeout={300} classNames="fade">
+          <div
+            className="task fade-in"
+            draggable
+            onDragStart={(e) => handleDragStart(e, task)}
+          >
+            {task.title}
+          </div>
+        </CSSTransition>
+      ))}
+    </TransitionGroup>
   );
 
   return (
     <div className="board">
-      <h1>Kanban Board</h1>
+      <h1>Prodo</h1>
       {/* Form for adding new tasks */}
       <form id="todo-form" onSubmit={handleAddTask}>
         <input
@@ -129,7 +133,7 @@ const Board = () => {
         {['todo', 'doing', 'done'].map(status => (
           <div 
             key={status}
-            className="swim-lane" 
+            className="swim-lane fade-in" 
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, status)}
           >
@@ -140,7 +144,7 @@ const Board = () => {
       </div>
 
       {/* Pomodoro timer section */}
-      <div className="container">
+      <div className="container fade-in">
         <h2>Pomodoro Timer</h2>
         <div className="section-container">
           {['focus', 'short', 'long'].map(mode => (
