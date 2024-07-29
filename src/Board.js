@@ -111,16 +111,17 @@ const Board = () => {
 
   return (
     <div className="board">
+      <h1>Kanban Board</h1>
       {/* Form for adding new tasks */}
       <form id="todo-form" onSubmit={handleAddTask}>
         <input
           type="text"
-          placeholder="New TODO..."
+          placeholder="Add a new task..."
           id="todo-input"
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
-        <button type="submit">ADD +</button>
+        <button type="submit">Add Task</button>
       </form>
 
       {/* Task board with swim lanes */}
@@ -140,6 +141,7 @@ const Board = () => {
 
       {/* Pomodoro timer section */}
       <div className="container">
+        <h2>Pomodoro Timer</h2>
         <div className="section-container">
           {['focus', 'short', 'long'].map(mode => (
             <button 
@@ -159,7 +161,7 @@ const Board = () => {
             </button>
             {timerState.isRunning && (
               <button onClick={resetTimer}>
-                <i className="fa-solid fa-rotate-right"></i>
+                Reset
               </button>
             )}
           </div>
