@@ -13,6 +13,8 @@ npm run start
 
 This will start the app on `localhost:3000`.
 
+You can see a working demo [here](https://vaniasetia.github.io/Prodo).
+
 ## Features
 - Kanban Board with TODO, Doing and Done columns
 - Pomodoro Timer with three different options
